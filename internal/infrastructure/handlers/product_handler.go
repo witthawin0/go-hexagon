@@ -4,6 +4,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/witthawin0/go-hexagon/internal/domain"
 	"github.com/witthawin0/go-hexagon/internal/ports"
@@ -32,11 +33,12 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	var product domain.Product
+	id := strings.TrimPrefix(r.URL.Path, "/product/")
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := h.service.UpdateProduct(&product); err != nil {
+	if err := h.service.UpdateProduct(id, &product); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -44,7 +46,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	id := strings.TrimPrefix(r.URL.Path, "/product/")
 	if id == "" {
 		http.Error(w, "missing id parameter", http.StatusBadRequest)
 		return
@@ -57,7 +59,7 @@ func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) GetProductByID(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	id := strings.TrimPrefix(r.URL.Path, "/product/")
 	if id == "" {
 		http.Error(w, "missing id parameter", http.StatusBadRequest)
 		return

@@ -22,7 +22,7 @@ func (r *PostgresProductRepository) Save(product *domain.Product) error {
 	return err
 }
 
-func (r *PostgresProductRepository) Update(product *domain.Product) error {
+func (r *PostgresProductRepository) Update(id string, product *domain.Product) error {
 	_, err := r.db.Exec("UPDATE products SET name=$1, description=$2, price=$3, stock=$4 WHERE id=$5",
 		product.Name, product.Description, product.Price, product.Stock, product.ID)
 	return err

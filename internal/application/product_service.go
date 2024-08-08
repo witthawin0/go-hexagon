@@ -18,8 +18,8 @@ func (s *ProductServiceImpl) CreateProduct(product *domain.Product) error {
 	return s.repo.Save(product)
 }
 
-func (s *ProductServiceImpl) UpdateProduct(product *domain.Product) error {
-	return s.repo.Update(product)
+func (s *ProductServiceImpl) UpdateProduct(id string, product *domain.Product) error {
+	return s.repo.Update(id, product)
 }
 
 func (s *ProductServiceImpl) DeleteProduct(id string) error {
