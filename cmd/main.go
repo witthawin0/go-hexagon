@@ -1,36 +1,53 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
 	"github.com/witthawin0/go-hexagon/internal/adapters/repository"
 	"github.com/witthawin0/go-hexagon/internal/application"
-	"github.com/witthawin0/go-hexagon/internal/infrastructure"
 	"github.com/witthawin0/go-hexagon/internal/infrastructure/handlers"
+
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	// Initialize the database connection
-	db := infrastructure.InitDB("your_connection_string")
+	db, err := sql.Open("postgres", "host=localhost port=5432 user=myuser password=mypassword dbname=mydatabase sslmode=disable")
 
-	// Create the repository
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	// Initialize repositories
 	productRepo := repository.NewPostgresProductRepository(db)
+	// customerRepo := repository.NewPostgresCustomerRepository(db)
+	orderRepo := repository.NewPostgresOrderRepository(db)
 
-	// Create the service
+	// Initialize services
 	productService := application.NewProductService(productRepo)
+	// customerService := application.NewCustomerService(customerRepo)
+	orderService := application.NewOrderService(orderRepo)
 
-	// Create the handlers
+	// Initialize handlers
 	productHandler := handlers.NewProductHandler(productService)
+	// customerHandler := handlers.NewCustomerHandler(customerService)
+	orderHandler := handlers.NewOrderHandler(orderService)
 
-	// Set up the routes
-	http.HandleFunc("/products", productHandler.GetAllProducts)
-	http.HandleFunc("/products/create", productHandler.CreateProduct)
-	http.HandleFunc("/products/update", productHandler.UpdateProduct)
-	http.HandleFunc("/products/delete", productHandler.DeleteProduct)
-	http.HandleFunc("/products/get", productHandler.GetProductByID)
+	// Define routes
+	http.HandleFunc("GET /products", productHandler.GetAllProducts)
+	http.HandleFunc("POST /products", productHandler.CreateProduct)
+	http.HandleFunc("GET /products/:id", productHandler.GetProductByID)
+	http.HandleFunc("PUT /products/:id", productHandler.UpdateProduct)
+	http.HandleFunc("DELETE /products/:id", productHandler.DeleteProduct)
 
-	// Start the HTTP server
-	log.Println("Starting server on :8080")
+	http.HandleFunc("GET /orders", orderHandler.GetAllOrders)
+	http.HandleFunc("POST /orders", orderHandler.CreateOrder)
+	http.HandleFunc("GET /orders/:id", orderHandler.GetOrder)
+	http.HandleFunc("PUT /orders/:id", orderHandler.UpdateOrder)
+	http.HandleFunc("DELETE /orders/:id", orderHandler.DeleteOrder)
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
