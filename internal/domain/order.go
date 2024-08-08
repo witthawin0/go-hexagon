@@ -7,6 +7,7 @@ type Order struct {
 	CustomerID  string
 	OrderDate   time.Time
 	TotalAmount float64
+	Status      string
 	Products    []OrderProduct
 }
 

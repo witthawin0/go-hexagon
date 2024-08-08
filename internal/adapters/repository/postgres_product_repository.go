@@ -35,11 +35,14 @@ func (r *PostgresProductRepository) Delete(id string) error {
 
 func (r *PostgresProductRepository) FindByID(id string) (*domain.Product, error) {
 	row := r.db.QueryRow("SELECT id, name, description, price, stock FROM products WHERE id=$1", id)
+
 	product := &domain.Product{}
 	err := row.Scan(&product.ID, &product.Name, &product.Description, &product.Price, &product.Stock)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return product, nil
 }
 
@@ -48,16 +51,20 @@ func (r *PostgresProductRepository) FindAll() ([]*domain.Product, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	products := []*domain.Product{}
 	for rows.Next() {
 		product := &domain.Product{}
 		err := rows.Scan(&product.ID, &product.Name, &product.Description, &product.Price, &product.Stock)
+
 		if err != nil {
 			return nil, err
 		}
+
 		products = append(products, product)
 	}
+
 	return products, nil
 }

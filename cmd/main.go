@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	repository "github.com/witthawin0/go-hexagon/internal/adapters/reposistory"
+	"github.com/witthawin0/go-hexagon/internal/adapters/repository"
 	"github.com/witthawin0/go-hexagon/internal/application"
 	"github.com/witthawin0/go-hexagon/internal/infrastructure"
 	"github.com/witthawin0/go-hexagon/internal/infrastructure/handlers"
