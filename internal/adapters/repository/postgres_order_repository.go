@@ -47,8 +47,17 @@ func (r *PostgresOrderRepository) FindByID(id string) (*domain.Order, error) {
 }
 
 func (r *PostgresOrderRepository) FindAll() ([]*domain.Order, error) {
-	query := `SELECT id, customer_id, total_amount, status FROM orders`
-	rows, err := r.db.Query(query)
+	rows, err := r.db.Query(`
+        SELECT 
+            o.id, 
+            o.customer_id, 
+            o.order_date, 
+            o.status, 
+            COALESCE(SUM(oi.quantity * oi.price), 0) AS total_amount
+        FROM orders o
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        GROUP BY o.id
+    `)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +66,13 @@ func (r *PostgresOrderRepository) FindAll() ([]*domain.Order, error) {
 	var orders []*domain.Order
 	for rows.Next() {
 		var order domain.Order
-		if err := rows.Scan(&order.ID, &order.CustomerID, &order.TotalAmount, &order.Status); err != nil {
+		if err := rows.Scan(
+			&order.ID,
+			&order.CustomerID,
+			&order.OrderDate,
+			&order.Status,
+			&order.TotalAmount,
+		); err != nil {
 			return nil, err
 		}
 		orders = append(orders, &order)

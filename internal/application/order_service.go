@@ -71,6 +71,7 @@ func (s *orderServiceImpl) GetOrderByID(id string) (*domain.Order, error) {
 func (s *orderServiceImpl) GetAllOrders() ([]*domain.Order, error) {
 	logger.Info("Retrieving all orders")
 
+	var orders []*domain.Order
 	orders, err := s.repo.FindAll()
 	if err != nil {
 		logger.Error("Error retrieving orders:", err)

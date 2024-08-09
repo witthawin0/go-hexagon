@@ -21,33 +21,48 @@ func main() {
 
 	defer db.Close()
 
+	router := http.NewServeMux()
+
 	// Initialize repositories
 	productRepo := repository.NewPostgresProductRepository(db)
-	// customerRepo := repository.NewPostgresCustomerRepository(db)
+	customerRepo := repository.NewPosgresCustomerRepository(db)
 	orderRepo := repository.NewPostgresOrderRepository(db)
 
 	// Initialize services
 	productService := application.NewProductService(productRepo)
-	// customerService := application.NewCustomerService(customerRepo)
+	customerService := application.NewCustomerService(customerRepo)
 	orderService := application.NewOrderService(orderRepo)
 
 	// Initialize handlers
 	productHandler := handlers.NewProductHandler(productService)
-	// customerHandler := handlers.NewCustomerHandler(customerService)
+	customerHandler := handlers.NewCustomerHandler(customerService)
 	orderHandler := handlers.NewOrderHandler(orderService)
 
 	// Define routes
-	http.HandleFunc("GET /products", productHandler.GetAllProducts)
-	http.HandleFunc("POST /products", productHandler.CreateProduct)
-	http.HandleFunc("GET /products/:id", productHandler.GetProductByID)
-	http.HandleFunc("PUT /products/:id", productHandler.UpdateProduct)
-	http.HandleFunc("DELETE /products/:id", productHandler.DeleteProduct)
 
-	http.HandleFunc("GET /orders", orderHandler.GetAllOrders)
-	http.HandleFunc("POST /orders", orderHandler.CreateOrder)
-	http.HandleFunc("GET /orders/:id", orderHandler.GetOrder)
-	http.HandleFunc("PUT /orders/:id", orderHandler.UpdateOrder)
-	http.HandleFunc("DELETE /orders/:id", orderHandler.DeleteOrder)
+	// router.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
+	// 	fmt.Println("create a todo")
+	// 	w.WriteHeader(http.StatusCreated)
+	// 	w.Write([]byte("Todo created"))
+	// }).Methods(http.MethodPost)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	router.HandleFunc("GET /products", productHandler.GetAllProducts)
+	router.HandleFunc("POST /products", productHandler.CreateProduct)
+	router.HandleFunc("GET /products/{id}", productHandler.GetProductByID)
+	router.HandleFunc("PUT /products/{id}", productHandler.UpdateProduct)
+	router.HandleFunc("DELETE /products/{id}", productHandler.DeleteProduct)
+
+	router.HandleFunc("GET /orders", orderHandler.GetAllOrders)
+	router.HandleFunc("POST /orders", orderHandler.CreateOrder)
+	router.HandleFunc("GET /orders/{id}", orderHandler.GetOrder)
+	router.HandleFunc("PUT /orders/{id}", orderHandler.UpdateOrder)
+	router.HandleFunc("DELETE /orders/{id}", orderHandler.DeleteOrder)
+
+	router.HandleFunc("GET /customers", customerHandler.GetAllCustomers)
+	router.HandleFunc("POST /customers", customerHandler.CreateCustomer)
+	router.HandleFunc("GET /customers/{id}", customerHandler.GetCustomerByID)
+	router.HandleFunc("PUT /customers/{id}", customerHandler.UpdateCustomer)
+	router.HandleFunc("DELETE /customers/{id}", customerHandler.DeleteCustomer)
+
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
