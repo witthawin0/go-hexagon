@@ -18,88 +18,83 @@ func NewProductHandler(service ports.ProductService) *ProductHandler {
 }
 
 func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	var product domain.Product
 
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "Invalid request payload"})
 		return
 	}
 
 	if err := h.service.CreateProduct(&product); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	WriteJSON(w, http.StatusCreated, nil)
 }
 
 func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	var product domain.Product
 	id := r.PathValue("id")
 
+	if id == "" {
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "missing id parameter"})
+		return
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "Invalid request payload"})
 		return
 	}
 
 	if err := h.service.UpdateProduct(id, &product); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	WriteJSON(w, http.StatusOK, nil)
 }
 
 func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id := r.PathValue("id")
 
 	if id == "" {
-		http.Error(w, "missing id parameter", http.StatusBadRequest)
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "missing id parameter"})
 		return
 	}
 
 	if err := h.service.DeleteProduct(id); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	WriteJSON(w, http.StatusOK, nil)
 }
 
 func (h *ProductHandler) GetProductByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id := r.PathValue("id")
 
 	if id == "" {
-		http.Error(w, "missing id parameter", http.StatusBadRequest)
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "missing id parameter"})
 		return
 	}
 
 	product, err := h.service.GetProductByID(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(product)
+	WriteJSON(w, http.StatusOK, product)
 }
 
 func (h *ProductHandler) GetAllProducts(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	products, err := h.service.GetAllProducts()
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(products)
+	WriteJSON(w, http.StatusOK, products)
 }

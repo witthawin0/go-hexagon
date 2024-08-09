@@ -1,5 +1,5 @@
 // internal/utils/logger/logger.go
-package utils
+package logger
 
 import (
 	"log"

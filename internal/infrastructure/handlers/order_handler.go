@@ -17,21 +17,17 @@ func NewOrderHandler(service ports.OrderService) *orderHandler {
 }
 
 func (h *orderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	orders, err := h.service.GetAllOrders()
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(orders)
+	WriteJSON(w, http.StatusOK, orders)
 }
 
 func (h *orderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	var order domain.Order
 
 	if err := json.NewDecoder(r.Body).Decode(&order); err != nil {
@@ -42,7 +38,7 @@ func (h *orderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	err := h.service.CreateOrder(&order)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
@@ -50,13 +46,17 @@ func (h *orderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *orderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id := r.PathValue("id")
+
+	if id == "" {
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "missing id parameter"})
+		return
+	}
+
 	order, err := h.service.GetOrderByID(id)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
@@ -64,8 +64,6 @@ func (h *orderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *orderHandler) UpdateOrder(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id := r.PathValue("id")
 	var order domain.Order
 
@@ -86,8 +84,6 @@ func (h *orderHandler) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *orderHandler) DeleteOrder(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id := r.PathValue("id")
 
 	err := h.service.DeleteOrder(id)

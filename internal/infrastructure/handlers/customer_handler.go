@@ -17,25 +17,27 @@ func NewCustomerHandler(service ports.CustomerService) *CustomerHandler {
 }
 
 func (h *CustomerHandler) GetCustomerByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id := r.PathValue("id")
 
-	customer, err := h.service.GetCustomerByID(id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if id == "" {
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "missing id parameter"})
 		return
 	}
 
-	json.NewEncoder(w).Encode(customer)
+	customer, err := h.service.GetCustomerByID(id)
+	if err != nil {
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, customer)
 }
 
 func (h *CustomerHandler) CreateCustomer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	var customer domain.Customer
+
 	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
@@ -45,14 +47,17 @@ func (h *CustomerHandler) CreateCustomer(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	WriteJSON(w, http.StatusCreated, nil)
 }
 
 func (h *CustomerHandler) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	id := r.PathValue("id")
 	var customer domain.Customer
+	id := r.PathValue("id")
+
+	if id == "" {
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "missing id parameter"})
+		return
+	}
 
 	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
@@ -61,29 +66,30 @@ func (h *CustomerHandler) UpdateCustomer(w http.ResponseWriter, r *http.Request)
 
 	err := h.service.UpdateCustomer(id, &customer)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	WriteJSON(w, http.StatusOK, nil)
 }
 
 func (h *CustomerHandler) DeleteCustomer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id := r.PathValue("id")
 
-	if err := h.service.DeleteCustomer(id); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if id == "" {
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "missing id parameter"})
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	if err := h.service.DeleteCustomer(id); err != nil {
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	WriteJSON(w, http.StatusNoContent, nil)
 }
 
 func (h *CustomerHandler) GetAllCustomers(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	customers, err := h.service.GetAllCustomers()
 
 	if err != nil {
@@ -91,5 +97,5 @@ func (h *CustomerHandler) GetAllCustomers(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	json.NewEncoder(w).Encode(customers)
+	WriteJSON(w, http.StatusOK, customers)
 }
